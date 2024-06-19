@@ -2,120 +2,252 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <string.h>
-#include "LinkedList.h"
 
-static void terminate(const char* message) {
-	printf("%s\n", message);
-	exit(EXIT_FAILURE);
+#define NAME_LEN 25
+
+struct part {
+	int number;
+	char name[NAME_LEN + 1];
+	int on_hand;
+	struct part* next;
+};
+
+struct part* inventory = NULL;	// points to first part
+
+struct part* find_part(int number);
+void insert(void);
+void search(void);
+void update(void);
+void print(void);
+void erase(void);
+void dump(void);
+void restore(void);
+
+int read_line(char str[], int n);
+
+
+int main(void)
+{
+	char code;
+
+	for (;;) {
+		printf("Enter operation code(i,s,u,p,e,q,d,r): ");
+		scanf(" %c", &code);
+		while (getchar() != '\n')	// skips to end of line
+			;
+		switch (code) {
+		case 'i': insert();
+			break;
+		case 's': search();
+			break;
+		case 'u': update();
+			break;
+		case 'p': print();
+			break;
+		case 'e': erase();
+			break;
+		case 'd': dump();
+			break;
+		case 'r': restore();
+			break;
+		case 'q': return 0;
+		default: printf("Illegal code\n");
+		}
+		printf("\n");
+	}
 }
 
-Node* create_node(Element New_data) 
+struct part* find_part(int number)
 {
-	Node* new_node = (Node*)malloc(sizeof(Node));
-	
+	struct part* p;
+
+	for (p = inventory;
+		p != NULL && number > p->number;
+		p = p->next)
+		;
+	if (p != NULL && number == p->number)
+		return p;
+	return NULL;
+}
+
+void insert(void)
+{
+	struct part* cur, * prev, * new_node;
+
+	new_node = malloc(sizeof(struct part));
 	if (new_node == NULL) {
-		terminate("Error in create: node could not be created.");
+		printf("Database is full; can't add more parts.\n");
+		return;
 	}
 
-	strcpy(new_node->data.name, New_data.name);
-	new_node->data.kor = New_data.kor;
-	new_node->data.math = New_data.math;
-	new_node->data.com = New_data.com;
-	new_node->data.total = New_data.kor + New_data.math + New_data.com;
+	printf("Enter part number: ");
+	scanf("%d", &new_node->number);
 
-	new_node->next = NULL;
+	for (cur = inventory, prev = NULL;
+		cur != NULL && new_node->number > cur->number;
+		prev = cur, cur = cur->next)
+		;
+	if (cur != NULL && new_node->number == cur->number) {
+		printf("Part already exists.\n");
+		free(new_node);
+		return;
+	}
 
-	return new_node;
+	printf("Enter part name: ");
+	read_line(new_node->name, NAME_LEN);
+	printf("Enter quantity on hand: ");
+	scanf("%d", &new_node->on_hand);
+
+	new_node->next = cur;
+	if (prev == NULL)
+		inventory = new_node;
+	else
+		prev->next = new_node;
 }
 
-void destroy_node(Node* Node) 
+void search(void)
 {
-	free(Node);
+	int number;
+	struct part* p;
+
+	printf("Enter part number: ");
+	scanf("%d", &number);
+	p = find_part(number);
+	if (p != NULL) {
+		printf("Part name: %s\n", p->name);
+		printf("Quantity on hand: %d\n", p->on_hand);
+	}
+	else
+		printf("Part not found.\n");
 }
 
-void append_node(Node** Head, Node* New_node) 
+
+void update(void)
 {
-	if ((*Head) == NULL) {
-		*Head = New_node;
+	int number, change;
+	struct part* p;
+
+	printf("Enter part number: ");
+	scanf("%d", &number);
+	p = find_part(number);
+	if (p != NULL) {
+		printf("Enter change in quantity on hand: ");
+		scanf("%d", &change);
+		p->on_hand += change;
 	}
-	else {
-		// 테일을 찾아 New_node를 연결한다.
-		Node* Tail = *Head;
-		while (Tail->next != NULL)
-			Tail = Tail->next;
-	
-		Tail->next = New_node;
-	}
+	else
+		printf("Part not found.\n");
 }
 
-void insert_after(Node* Cur, Node* New_node) 
+void print(void)
 {
-	New_node->next = Cur->next;
-	Cur->next = New_node;
+	struct part* p;
+
+	printf("Part Number		Part Name			"
+		"Quantity on Hand\n");
+	for (p = inventory; p != NULL; p = p->next)
+		printf("%7d			%-25s%11d\n", p->number, p->name, p->on_hand);
 }
 
-void insert_new_head(Node** Head, Node* New_Head) 
+void erase(void)
 {
-	if (Head == NULL) {
-		*Head = New_Head;
+	struct part* cur, * prev, * temp;
+	int n;
+
+	printf("Enter a value that you want to delete: ");
+	scanf("%d", &n);
+
+	for (cur = inventory, prev = NULL;
+		cur != NULL && cur->number != n;
+		prev = cur, cur = cur->next)
+		;
+
+	if (cur == NULL) {
+		return;
 	}
-	else {
-		New_Head->next = *Head;
-		*Head = New_Head;
-	}
+	if (prev == NULL)
+		inventory = inventory->next;
+	else
+		prev->next = cur->next;
+	free(cur);
 }
 
-void remove_node(Node** Head, Node* Remove) 
+
+int read_line(char str[], int n)
 {
-	if (*Head == Remove) {
-		*Head = Remove->next;
+	int ch, i = 0;
+
+	while (isspace(ch = getchar()))
+		;
+	while (ch != '\n' && ch != EOF) {
+		if (i < n)
+			str[i++] = ch;
+		ch = getchar();
 	}
-	else {
-		Node* Cur = *Head;
-		while (Cur != NULL && Cur->next != Remove) {
-			Cur = Cur->next;
+	str[i] = '\0';
+	return i;
+}
+
+void dump(void)
+{
+	FILE* fp;
+	char filename[255];
+
+	printf("Enter name of outputfile: ");
+	read_line(filename, 255);
+
+	if ((fp = fopen(filename, "wb")) == NULL) {
+		fprintf(stderr, "%s cannot be opened\n", filename);
+		return;
+	}
+
+	struct part** pp = &inventory;
+
+	while (*pp) {
+		fwrite(*pp, sizeof(struct part) - sizeof(struct part*), 1, fp);
+		pp = &(*pp)->next;
+	}
+	fclose(fp);
+	return;
+}
+
+void restore(void)
+{
+	FILE* fp;
+	char filename[255];
+	struct part buffer;
+	struct part* temp;
+	struct part** pp;
+
+	printf("Enter name ofinput file: ");
+	read_line(filename, 255);
+
+	if ((fp = fopen(filename, "rb")) == NULL) {
+		fprintf(stderr, "%s cannot be opened\n");
+		return;
+	}
+
+	while (inventory) {
+		temp = inventory;
+		inventory = inventory->next;
+		free(temp);
+	}
+
+	pp = &inventory;
+
+	while (fread(&buffer, sizeof(struct part) - sizeof(struct part*), 1, fp) == 1) {
+		if ((*pp = malloc(sizeof(struct part))) == NULL) {
+			fprintf(stderr, "Error: malloc failed in restore\n");
+			exit(EXIT_FAILURE);
 		}
-		if (Cur != NULL)
-			Cur->next = Remove->next;
+		(*pp)->number = buffer.number;
+		strcpy((*pp)->name, buffer.name);
+		(*pp)->on_hand = buffer.on_hand;
+		(*pp)->next = NULL;
+		pp = &(*pp)->next;
 	}
-}
-
-Node* get_node(Node* Head, int Location) 
-{
-	Node* Cur = Head;
-
-	while (Cur != NULL && (--Location) >= 0) {
-		Cur = Cur->next;
-	}
-
-	return Cur;
-}
-
-int get_node_count(Node* Head) 
-{
-	int count = 0;
-	Node* Cur = Head;
-
-	while (Cur != NULL) {
-		Cur = Cur->next;
-		count++;
-	}
-
-	return count;
-}
-
-void descend_sort_list(Node* Head) {
-	Node* p, * q;
-	Element temp;
-
-	for (p = Head; p != NULL; p = p->next) {
-		for (q = p; q != NULL; q = q->next) {
-			if (q->data.total > p->data.total) {
-				temp = p->data;
-				p->data = q->data;
-				q->data = temp;
-			}
-		}
-	}
+	fclose(fp);
+	return;
 }
