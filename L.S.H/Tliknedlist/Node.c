@@ -16,7 +16,7 @@ typedef struct _Tlinkedlist
 	int numofData;
 }List;
 
-List* create(void) //°´Ã¼ µ¿Àû »ı¼º
+List* create(void) //ê°ì²´ ë™ì  ìƒì„±
 {
 	List* s;
 	if ((s = malloc(sizeof(List))) == NULL) {
@@ -37,15 +37,15 @@ void ListInit(List* plist)
 }
 void LInsert(List* plist, int data)
 {
-	//¿ì¼± ´õ¹Ì ³ëµå ºÎÅÍ »ı¼º
-	if (plist->head == NULL)//¾ÆÁ÷ head¿Í null¿¡ ´õ¹Ìµµ ¾ø´Â °æ¿ì
+	//ìš°ì„  ë”ë¯¸ ë…¸ë“œ ë¶€í„° ìƒì„±
+	if (plist->head == NULL)//ì•„ì§ headì™€ nullì— ë”ë¯¸ë„ ì—†ëŠ” ê²½ìš°
 	{
-		plist->head = (Node*)malloc(sizeof(Node));//´õ¹Ì °ª
-		plist->tail = (Node*)malloc(sizeof(Node));//´õ¹Ì °ª
+		plist->head = (Node*)malloc(sizeof(Node));//ë”ë¯¸ ê°’
+		plist->tail = (Node*)malloc(sizeof(Node));//ë”ë¯¸ ê°’
 
 		if (plist->head == NULL && plist->tail == NULL)
 		{
-			printf("´õ¹Ì ³ëµå »ı¼º ½ÇÆĞ");
+			printf("ë”ë¯¸ ë…¸ë“œ ìƒì„± ì‹¤íŒ¨");
 			exit(1);
 		}
 		plist->head->prev = NULL;
@@ -57,20 +57,20 @@ void LInsert(List* plist, int data)
 	Node* newnode = (Node*)malloc(sizeof(Node));
 	if (newnode == NULL)
 	{
-		printf("µ¿ÀûÇÒ´ç½ÇÆĞ\n");
+		printf("ë™ì í• ë‹¹ì‹¤íŒ¨\n");
 		exit(1);
 	}
 	newnode->data = data;
-	//²¿¸® ºÎºĞ ºÎÅÍ °ªÀ» ÀúÀå 
-	//°ªÀÌ µé¾î¿À¸é ²¿¸®¿¡ °è¼Ó ¿¬°áµÊ
-	if (plist->tail->prev == plist->head)//¾Æ¹« µ¥ÀÌÅÍ°¡ ¾ø´Â °æ¿ì 
+	//ê¼¬ë¦¬ ë¶€ë¶„ ë¶€í„° ê°’ì„ ì €ì¥ 
+	//ê°’ì´ ë“¤ì–´ì˜¤ë©´ ê¼¬ë¦¬ì— ê³„ì† ì—°ê²°ë¨
+	if (plist->tail->prev == plist->head)//ì•„ë¬´ ë°ì´í„°ê°€ ì—†ëŠ” ê²½ìš° 
 	{
 		newnode->next = plist->tail;
 		newnode->prev = plist->head;
 		plist->tail->prev = newnode;
 		plist->head->next = newnode;
 	}
-	else//µ¥ÀÌÅÍ°¡ ÇÏ³ª¶óµµ ÀÖ´Â °æ¿ì
+	else//ë°ì´í„°ê°€ í•˜ë‚˜ë¼ë„ ìˆëŠ” ê²½ìš°
 	{
 		newnode->prev = plist->tail->prev;
 		newnode->next = plist->tail;
@@ -93,7 +93,7 @@ int LFirst(List* plist, int* pdata)
 }
 int LNext(List* plist, int* pdata)
 {
-	if (plist->cur->next == NULL)
+	if (plist->cur->next == plist->tail)
 	{
 		return 0;
 	}
@@ -106,10 +106,11 @@ int LRemove(List* plist)
 {
 	Node* imsinext = plist->cur->next;
 	Node* imsiprev = plist->cur->prev;
-
+	Node* removep = plist->cur;
 	plist->cur->prev->next = imsinext;
 	plist->cur->next->prev = imsiprev;
-	free(plist->cur);
+	plist->cur = plist->cur->prev;
+	free(removep);
 	(plist->numofData)--;
 	return 1;
 }
