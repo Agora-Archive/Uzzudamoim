@@ -1,0 +1,45 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Stack;
+import java.util.StringTokenizer;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer sr = new StringTokenizer(br.readLine());
+        int N = Integer.parseInt(sr.nextToken());
+        int [] Array = new int[N];
+        for(int i = 0; i <N;i++)
+        {
+            sr = new StringTokenizer(br.readLine());
+            Array[i] = Integer.parseInt(sr.nextToken());
+        }
+        //여기까지 입력에 관한 수를 저장
+        //출력에 관한 수를 여러번 저장해야하기 때문에 stringBuilder에 저장
+        StringBuilder Builder = new StringBuilder();
+        Stack<Integer> stack = new Stack<>();
+
+        int top = 1; //top 변수의 경우 stack에 저장할 수를 말함
+        for(int i = 0; i < N;i++)
+        {
+            while(top <= Array[i])
+            {
+                stack.push(top++);
+                Builder.append('+').append('\n');
+            }
+
+            int Number = stack.pop();
+            if(Number != Array[i]) //pop했을 때 배열과 값이 다르면 실패 왜냐하면 1부터 n까지의 수를 사용해 수열을 만드는데 값을 찾을 때까지 pop을 할 경우 그 뒤 수열을 완성하지 못하기 때문에
+            {
+                Builder.setLength(0);
+                 Builder.append("NO");
+                 break;
+            }
+            Builder.append('-').append('\n');
+        }
+        System.out.println(Builder.toString());
+
+
+    }
+}
