@@ -1,0 +1,77 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+import java.util.StringTokenizer;
+
+//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
+// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+public class Main {
+    public static void main(String[] args) throws IOException {
+
+        //값 여러번 입력 받기 때문에 BufferReader사용
+        //출력 값을 여러번 저장하가 위해 StringBuilder을 사용
+        /*
+        1. 최소힙으로 우선 순위 큐를 만듬 이 때 정렬 기준 사용자화한다.
+        - a. 절대값으로 변경하여 더 작은 경우를 더 우선한다.
+        -b. 절대 값이 같을 경우 실제 부호로 더 작은 수를 우선한다.
+        2.  0이 아니면 숫자를 저장
+        3. 0이면 숫자를 출력. 이 때 큐가 비어 있다면 0을 Builder에 저장
+
+        해당 문제의 핵심은 우선순위 큐를 사용할 때 저장 우선순위를 사용자화 하는 것이 핵심
+        우선순위 큐의 경우 힙으로 구현
+         힙의 경우 최소힙과 최대힙이 있음 자바에서는 기본이 최소힙 이는 일반적으로 배열로 구현되어 있음(완전 이진트리 형식)
+
+       최소힙의 경우 부모 노드가 자식노드보다 무조건 커야함 왼쪽 자식 노드는 부모노드의 * 2
+         오른쪽 자식노드는 부모노드의 * 2  + 1
+         자식노드의 부모노드는 해당 노드의 / 2
+         */
+        StringBuilder sb = new StringBuilder();
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer st = new StringTokenizer(br.readLine());
+        int N  = Integer.parseInt(st.nextToken()); //처리할 데이터의 개수
+        PriorityQueue<Integer> Heap = new PriorityQueue<>(new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                int num1 = Math.abs(o1);
+                int num2 = Math.abs(o2);
+
+                // 절대값 비교
+                if (num1 < num2) {
+                    return -1;  // o1을 우선
+                } else if (num1 > num2) {
+                    return 1;  // o2를 우선
+                } else {
+                    // 절대값이 같으면 원래 값 비교
+                    return Integer.compare(o1, o2);
+                }
+            }
+        });
+
+        for(int i = 0; i < N;i++)
+        {
+            st = new StringTokenizer(br.readLine());
+            int number = Integer.parseInt(st.nextToken());
+            if(number != 0)
+            {
+                Heap.add(number);
+            }
+            else
+            {
+                if(Heap.isEmpty()) //힙이 비어있는 경우 0을 출력
+                {
+                    sb.append("0\n");
+                }
+                else //비어 있지 않는 경우 힙에서 poll해서 저장
+                {
+                    sb.append(Heap.poll()).append('\n');
+                }
+            }
+        }
+
+        System.out.println(sb.toString());
+
+
+    }
+}
